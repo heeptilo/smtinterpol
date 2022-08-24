@@ -34,7 +34,7 @@ public class BivariatePolynomial {
     Rational [][] coefficients;
 
     /**
-     * constructor with List of Rationals as coefficients
+     * constructor with 2d array of Rationals as coefficients
      * @param coeff
      */
     public BivariatePolynomial(Rational [][] coeff) {
@@ -61,6 +61,7 @@ public class BivariatePolynomial {
      * creates a bivariate polynomial p(x-y)
      * where the polynomial of x is coefficient of the polynomial of y
      * @param p given Polynomial of which p(x-y) should be created
+     * @returns Bivariate Polynomial p(x-y)
      */
     public static BivariatePolynomial subxy(Polynomial p) {
         Rational [][] resultcoefficients = new Rational[p.getSize()][];
@@ -109,7 +110,7 @@ public class BivariatePolynomial {
         return new BivariatePolynomial(resultcoefficients);
     }
 
-    public static List<Integer> newPascalrow(List<Integer> binomlist) {
+    private static List<Integer> newPascalrow(List<Integer> binomlist) {
         List<Integer> newPascallist = new ArrayList<>();
         newPascallist.add(1);
         if (binomlist.size() == 0) {
@@ -122,6 +123,11 @@ public class BivariatePolynomial {
         return newPascallist;
     }
 
+    /**
+     * Builds a pascaltriangle of depth size
+     * @param size
+     * @return pascaltriangle of a list of list of ints
+     */
     public static List<List<Integer>> pascaltriangle(int size) {
         List<List<Integer>> triangle = new ArrayList<>();
         List<Integer> pascalrow = new ArrayList<>();
@@ -135,7 +141,7 @@ public class BivariatePolynomial {
 
     /** Function that orders the coefficients in the reverse order
      */
-    public BivariatePolynomial reverse() {
+    private BivariatePolynomial reverse() {
         Rational result [][] = new Rational[getSizeOverY()][getSizeOverX()];
         if (getSizeOverY() == 0) {
             BivariatePolynomial res = new BivariatePolynomial(result);
@@ -149,7 +155,8 @@ public class BivariatePolynomial {
         return res;
     }
 
-    /** Funktion that removes the zeros if there are any at the position of the highest exponents
+    /** 
+     * Funktion that removes the zeros if there are any at the position of the highest exponents
     */
     public BivariatePolynomial removeZeros() {
         Rational [][] coeff = new Rational[getSizeOverY()][coefficients[0].length];
@@ -180,7 +187,7 @@ public class BivariatePolynomial {
         return result;
     }
 
-    public Boolean isZero(Rational[] list) {
+    private Boolean isZero(Rational[] list) {
         for (int i = 0; i < list.length; i++) {
             if (list[i] != Rational.ZERO) {
                 return false;
@@ -189,7 +196,8 @@ public class BivariatePolynomial {
         return true;
     }
 
-    public List<Rational> divideConst(List<Rational> coeff, Rational constant) {
+    /*
+    private List<Rational> divideConst(List<Rational> coeff, Rational constant) {
         List<Rational> result = new ArrayList<>();
         for (int i = 0; i < coeff.size(); i++) {
             result.add(coeff.get(i).div(constant));
@@ -197,15 +205,15 @@ public class BivariatePolynomial {
         return result;
     }
 
-    public List<Rational> mulConst(List<Rational> coeff, Rational constant) {
+    private List<Rational> mulConst(List<Rational> coeff, Rational constant) {
         List<Rational> result = new ArrayList<>();
         for (int i = 0; i < coeff.size(); i++) {
             result.add(coeff.get(i).mul(constant));
         }
         return result;
     }
-
-    public List<Rational> subPoly(List<Rational> l1, List<Rational> l2) {
+    
+    private List<Rational> subPoly(List<Rational> l1, List<Rational> l2) {
         List<Rational> result = new ArrayList<>();
         for (int i = 0; i < l1.size(); i++) {
             if (i < l2.size()) {
@@ -216,4 +224,5 @@ public class BivariatePolynomial {
         }
         return result;
     }
+    */
 }

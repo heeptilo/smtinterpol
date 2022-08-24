@@ -62,10 +62,18 @@ public class Polynomial {
         return coefficients.length;
     }
 
-    /** Function to differentiate a polynomial
+    /**
+     * Function to differentiate a polynomial
      * Returns a polynomial
+     * @return differentiated Polynomial
      */
     public Polynomial differentiate() {
+        if (getSize() == 0) {
+            return this;
+        }
+        if (getSize() == 1) {
+            return new Polynomial();
+        }
         Rational [] result = new Rational[getDegree()];
         for (int i = 0; i < getDegree(); i++ ){
             result[i] = coefficients[i+1].mul(Rational.valueOf(i + 1, 1));
@@ -74,7 +82,9 @@ public class Polynomial {
         return res;
     }
 
-    /** Function that orders the coefficients in the reverse order
+    /**
+     * Function that orders the coefficients in the reverse order
+     * @return reversed Polynomial
      */
     public Polynomial reverse() {
         Rational [] result = new Rational[getSize()];
@@ -90,8 +100,10 @@ public class Polynomial {
         return res;
     }
 
-    /** Funktion that removes the zeros if there are any at the position of the highest exponents
-    */
+    /**
+     * Function that removes the zeros if there are any at the position of the highest exponents
+     * @return The reduced Polynomial
+     */
     public Polynomial removeZeros() {
         List<Rational> coeff = new ArrayList<>();
         if (getSize() == 0) {
@@ -118,8 +130,10 @@ public class Polynomial {
         return result;
     }
 
-    /** Function that returns for a polynom p(x) the polynom p(-x)
-    */
+    /**
+     * Function that returns for a polynom p(x) the polynom p(-x)
+     * @return
+     */
     public Polynomial negate() {
         int m = getSize();
         Rational [] result = new Rational[m];
@@ -128,13 +142,17 @@ public class Polynomial {
             if (i % 2 == 0) {
                 result[i] = coefficients[i];
             } else {
-                result[i] = (coefficients[i].negate());
+                result[i] = coefficients[i].negate();
             }
         }
         Polynomial res = new Polynomial(result);
         return res;
     }
 
+    /**
+     * negate all coefficients of the polynomial
+     * @return polynomial -p
+     */
     public Polynomial negateAll() {
         Rational [] coeffs = new Rational[getSize()];
         for (int i = 0; i < getSize(); i++) {
@@ -144,11 +162,22 @@ public class Polynomial {
         return result;
     }
 
+    /**
+     * calculates how many roots in the given interval are
+     * lower bound is excluded and upper bound included
+     * @param interval
+     * @return number of roots in the interval (Integer)
+     */
     public Integer numberOfRootsinInterval(Rational [] interval) {
         AlgebraicNumbers a1 = new AlgebraicNumbers(this, interval[0], interval[1]);
         return a1.rootsInInterval();
     }
 
+    /**
+     * evaluates a polynomial on a given rational e
+     * @param e point of evaluation
+     * @return rational y-value of polynomial
+     */
     public Rational evaluatePoly(Rational e) {
         // variable pote to build e^i iteratively
         Rational pote = Rational.valueOf(1, 1);
@@ -167,10 +196,16 @@ public class Polynomial {
         return sum;
     }
 
+    /**
+     * evaluates a polynomial on a given algebraic number a
+     * if a is a root this should return Zero(algebraic)
+     * @param a algebraic number
+     * @return algebraic number y-value
+     */
     public AlgebraicNumbers evaluatePolyAlgebraic(AlgebraicNumbers a) {
         if (getSize() == 0) {
             // return 0
-            return new AlgebraicNumbers(new Polynomial(), Rational.ZERO, Rational.valueOf(1, 1));
+            return AlgebraicNumbers.ZERO;
         }
         if (getSize() == 1) {
             Rational [] linear = new Rational[2];
@@ -188,23 +223,22 @@ public class Polynomial {
             //System.out.println(AlgebraicNumbers.mulConst(pote, coefficients[i]).toString());
             //System.out.println( AlgebraicNumbers.mulConst(pote, coefficients[i]).toString());
             AlgebraicNumbers constmul = AlgebraicNumbers.mulConst(pote, coefficients[i]);
+            //System.out.println(constmul);
             constmul = constmul.removeZeroNodes();
-            System.out.println("sum:");
-            System.out.println(constmul);
-            System.out.println("+");
-            System.out.println(sum);
-            System.out.println("=");
+            //System.out.println("sum:");
+            //System.out.println(constmul);
+            //System.out.println("+");
             sum = sum.removeZeroNodes();
             sum = AlgebraicNumbers.add(sum, constmul);
-            System.out.println(sum);
-            //System.out.println(pote.toString());
-            pote = AlgebraicNumbers.multiply(pote, a);
-            //pote = pote.minimize();
+            if (i != getDegree()) {
+                //pote = pote.minimize();
+                pote = AlgebraicNumbers.multiply(pote, a);
+            }
         }
         return sum;
     }
 
-    // necessery???
+    //
     public Polynomial copy() {
         Rational [] coeff = new Rational[getSize()];
         for (int i = 0; i < getSize(); i++) {
@@ -213,6 +247,11 @@ public class Polynomial {
         return new Polynomial(coeff);
     }
 
+    /**
+     * multiplies the polynomial with a given constant.
+     * @param constant
+     * @return constant * polynomial p
+     */
     public Polynomial mul(Rational constant) {
         Rational [] coeff = new Rational[getSize()];
         for (int i = 0; i <= getDegree(); i++) {
@@ -225,13 +264,24 @@ public class Polynomial {
     public boolean equals(Object o) {
         if (o instanceof Polynomial) {
             Polynomial p = (Polynomial) o;
-            return coefficients.equals(p.coefficients);
+            if (Arrays.equals(p.coefficients, coefficients)) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
 
     }
 
+    /**
+     * Turns the polynomial into a bivariate polynomial by
+     * adding each coefficient to its own list.
+     * This represents a polynomial over variable y with constant
+     * polynomials over x
+     * @return Bivariate Polynomial over y
+     */
     public BivariatePolynomial toBivariate() {
         Rational [][] coeff = new Rational[getSize()][1];
         for (int i = 0; i < getSize(); i++) {
@@ -243,96 +293,8 @@ public class Polynomial {
     }
 
 
-    /* 
-    public List<List<Rational>> divideBiPoly(BivariatePolynomial q) {
-        Polynomial p = copy();
-
-        // multiply coefficients (constant) with highest coefficient of q
-        List<List<Rational>> extendcoeff = new ArrayList<>();
-        // save the highest coefficient (will always be multiplied with restcoefficients)
-        Rational [] highestCoeffq = q.coefficients[q.getDegree()];
-        for (int i = 0; i < p.getSize(); i++) {
-            extendcoeff.add(mulConst(highestCoeffq ,p.coefficients[i]));
-        }
-        // div is highest coefficient polynomial of p
-        Rational div = coefficients[getDegree()];
-        int degdif = extendcoeff.size() - q.getSize();
-        // i iterates threw q (i + difference of degree) is the outdegree
-        // -1 because the highest coefficient will be deleted anyway
-        for (int i = 0; i < q.getDegree(); i++) {
-            List<Rational> subcoeff = mulConst(q.coefficients[i], div);
-            extendcoeff.set(i, minusList(extendcoeff.get(i), subcoeff));
-        }
-        extendcoeff.remove(q.getDegree());
-
-        int degp = extendcoeff.size();
-        int degq = q.getSize() - 1;
-
-        while (degp > degq) {
-            // leading coefficient / not necessery to divide because of extension
-            List<Rational> difference = extendcoeff.get(degp - 1);
-
-            // from lowest possible coefficient in p such that q * div 
-            // has the same exponent iterate to the end
-            // no quotient needed else add div to quotient
-            for ( int i = 0; i < degdif; i++) {
-                // substract from coefficient at index i + degdif the div * coefficient of q
-                List<Rational> subCoefficients = mulList(difference, q.coefficients[i]);
-                List<Rational> mulhighcoeff = mulList(extendcoeff.get(i), highestCoeffq);
-                extendcoeff.set(i, minusList(mulhighcoeff, subCoefficients));
-                extendcoeff.remove(degdif);
-            }
-            // Update sizes
-            degp -= 1;
-            degdif -= 1;
-        }
-        return extendcoeff;
-    }
-    */
-
-    public Rational [] mulConst(Rational [] coeff, Rational cons) {
-        Rational [] result = new Rational[coeff.length];
-        for (int i = 0; i < coeff.length; i++) {
-            result[i] = coeff[i].mul(cons);
-        }
-        return result;
-    }
-
-    public Rational [] mulList(Rational [] list1, Rational [] list2) {
-        Rational [] result = new Rational[list1.length + list2.length - 1];
-        for (int i = 0; i < list1.length+list2.length-1; i++) {
-            result[i] = Rational.ZERO;
-        }
-        for (int i = 0; i < list1.length; i++) {
-            for (int j = 0; j < list2.length; j++) {
-                result[i+j] = result[i+j].add(list1[i].mul(list2[j]));
-            }
-        }
-        return result;
-    }
-
-    public Rational [] minusList(Rational [] list1, Rational [] list2) {
-        int max = list1.length;
-        if (list2.length > list1.length) {
-            max = list2.length;
-        }
-        Rational [] result = new Rational[max];
-        for (int i = 0; i < list1.length; i++) {
-            if (i < list2.length) {
-                result[i] = list1[i].add(list2[i].negate());
-            } else {
-                result[i] = list1[i];
-            }
-        }
-        if (list2.length > list1.length) {
-            for (int i = 1; i <= list2.length-list1.length; i++) {
-                result[list1.length + i - 1] = list2[i + list1.length - 1].negate();
-            }
-        }
-        return result;
-    }
-
     public int hashCode() {
-        return coefficients.hashCode();
+        return Arrays.hashCode(coefficients);
     }
+    
 }

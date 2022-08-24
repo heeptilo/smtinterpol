@@ -18,6 +18,8 @@
  */
 package de.uni_freiburg.informatik.ultimate.logic;
 
+import java.util.Arrays;
+
 public class ManPolys {
     
    /** Function to perform a longdivision given a polynomial q and polynomial p
@@ -36,10 +38,15 @@ public class ManPolys {
         Polynomial [] result = new Polynomial[2];
 
         // Basis cases if p or q is zero
-        if (degq > degp || degq == 0 || degp == 0) {
+        if (degq > degp || degp == 0) {
             Polynomial quotient = new Polynomial();
             result[0] = quotient;
             result[1] = p;
+            return result;
+        }
+        if (degq == 0) {
+            result[0] = p;
+            result[1] = new Polynomial();
             return result;
         }
         // Initialize rest as p
@@ -78,7 +85,43 @@ public class ManPolys {
         return result;
     }
 
-    public static BivariatePolynomial divideBiPoly(BivariatePolynomial p, BivariatePolynomial q) {
+    /**
+     * function to reduce the coefficients of the bivariate polynomial by dividing each
+     * by the greatest common divisior.
+     * @param g Bivariate polynomial to reduce
+     * @return reduced bivariate polynomial
+     */
+    public static BivariatePolynomial reduce(BivariatePolynomial g) {
+        Polynomial gcd = new Polynomial(g.coefficients[0]);
+        Rational[][] reslist = new Rational[g.getSizeOverY()][];
+        // build gcd iteratively
+        for (int i = 1; i <= g.getDegree(); i++) {
+            // if one of the coef. is constant -> nothing to reduce
+            if (g.coefficients[i].length == 1) {
+                return g;
+            }
+            Polynomial m = new Polynomial(g.coefficients[i]);
+            gcd = gcd(gcd, m);
+        }
+        // divide the coefs. by the gcd
+        for (int i = 0; i <= g.getDegree(); i++) {
+            Polynomial m = new Polynomial(g.coefficients[i]);
+            Polynomial q = longdivision(m, gcd)[0];
+            reslist[i] = q.coefficients;
+        }
+        return new BivariatePolynomial(reslist);
+    }
+
+    /**
+     * function that divides two bivariate polynomials by performing a pseudodivision.
+     * If the highest Coefficient is not divisible the psedoMod Algotithm multiplies 
+     * all coefficients of p
+     * with highest Coefficient in q
+     * @param p bi polynomial 1
+     * @param q bi polynomial 2
+     * @return rest of the division p/q
+     */
+    public static BivariatePolynomial pseudoMod(BivariatePolynomial p, BivariatePolynomial q) {
         // multiply coefficients with highest coefficient of q
         Rational [][] extendcoeff = p.coefficients;
         // save the highest coefficient (will always be multiplied with restcoefficients)
@@ -118,79 +161,30 @@ public class ManPolys {
             degp -= 1;
             degdif -= 1;
         }
-        //int restsize = extendcoeff.length - del;
+        //degree of rest is at most degq - 1
         int restsize = degq;
         Rational [][] resultList = new Rational[restsize][];
         for (int i = 0; i < restsize; i++) {
             resultList[i] = extendcoeff[i];
         }
         BivariatePolynomial r = new BivariatePolynomial(resultList);
+        r = r.removeZeros();
         return r;
     }
 
-    /*
-    public static BivariatePolynomial divideBiPolyold(BivariatePolynomial p, BivariatePolynomial q) {
-        // multiply coefficients with highest coefficient of q
-        List<List<Rational>> extendcoeff = p.getCoefficients();
-        System.out.println(extendcoeff);
-        System.out.println(q.coefficients);
-        // save the highest coefficient (will always be multiplied with restcoefficients)
-        List<Rational> highestCoeffq = q.coefficients.get(q.getDegree());
-        int degdif = p.getSize() - q.getSize();
 
-        int degp = p.getDegree();
-        int degq = q.getDegree();
-
-        while (degp >= degq) {
-            // leading coefficient of p
-            List<Rational> highestCoeffp = extendcoeff.get(extendcoeff.size() - 1);
-
-            // test if its possible to divide the leading coefficients
-            Polynomial leadPolyp = new Polynomial(highestCoeffp);
-            Polynomial leadPolyq = new Polynomial(highestCoeffq);
-            List<Polynomial> division = longdivision(leadPolyp, leadPolyq);
-            if (division.get(1).coefficients.length == 0) {
-                Polynomial quotient = division.get(0);
-                highestCoeffp = quotient.coefficients;
-
-            } else {
-                // if the leading coefficient is not divisible all coefficients (except highest)
-                // have to be extended by
-                // the leading coefficient of q
-                for (int i = 0; i < extendcoeff.size() - 1; i++) {
-                    extendcoeff.set(i, mulList(extendcoeff.get(i), highestCoeffq));
-                }
-            }
-            for (int i = 0; i < degq; i++) {
-                // substract from coefficient at index i + degdif the div * coefficient of q
-                List<Rational> subCoefficients = mulList(highestCoeffp, q.coefficients.get(i));
-                List<Rational> mulhighcoeff = extendcoeff.get(i + degdif);
-                extendcoeff.set(i + degdif, minusList(mulhighcoeff, subCoefficients));
-            }
-            extendcoeff.remove(degp);
-            // Update sizes
-            degp -= 1;
-            degdif -= 1;
-        }
-        BivariatePolynomial r = new BivariatePolynomial(extendcoeff);
-        return r;
-    }
-
-    public static List<Rational> mulConst(List<Rational> coeff, Rational cons) {
-        List<Rational> result = new ArrayList<>();
-        for (int i = 0; i < coeff.size(); i++) {
-            result.add(coeff[i].mul(cons));
-        }
-        return result;
-    }
-    */
-
-
+    /**
+     * function mulList multiplies two lists like polynomials
+     * @param list1 first list
+     * @param list2 second list
+     * @return list of rationals as result of multiplication
+     */
     public static Rational [] mulList(Rational [] list1, Rational [] list2) {
         Rational [] result = new Rational[list1.length + list2.length - 1];
         for (int i = 0; i < list1.length+list2.length-1; i++) {
             result[i] = Rational.ZERO;
         }
+        // all combinations of coefficients
         for (int i = 0; i < list1.length; i++) {
             for (int j = 0; j < list2.length; j++) {
                 result[i+j] = result[i+j].add(list1[i].mul(list2[j]));
@@ -199,7 +193,16 @@ public class ManPolys {
         return result;
     }
 
+    /**
+     * calculates list1 minus list2. No presumptions about sizes.
+     * if list2 is bigger than list1 it performs minus by assuming zeros after list1
+     * and vice versa
+     * @param list1
+     * @param list2
+     * @return
+     */
     public static Rational [] minusList(Rational [] list1, Rational [] list2) {
+        // set max as length of bigger list
         int max = list1.length;
         if (list2.length > list1.length) {
             max = list2.length;
@@ -209,9 +212,11 @@ public class ManPolys {
             if (i < list2.length) {
                 result[i] = list1[i].add(list2[i].negate());
             } else {
+                // if list2 is shorter just add list1 to result
                 result[i] = list1[i];
             }
         }
+        // if list2 is longer than list 1 add negated values of list2
         if (list2.length > list1.length) {
             for (int i = 1; i <= list2.length-list1.length; i++) {
                 result[list1.length + i - 1] = list2[list1.length + i - 1].negate();
@@ -222,10 +227,11 @@ public class ManPolys {
 
 
     /**
-     * Function that calculates the greatest common divisior of two polynomials p and q
+     * euclidean gcd algorithm
+     * Calculates the greatest common divisior of two polynomials p and q
      * if result is constant it returns an empty polynomial
-     * @param p Polynomial with higher highest exponent
-     * @param q Polynomial with lower highest exponent
+     * @param p Polynomial with higher degree
+     * @param q Polynomial with lower degree
      * @return Polynomial gcd(p,q)
      */
     public static Polynomial gcd(Polynomial p, Polynomial q) {
@@ -242,9 +248,12 @@ public class ManPolys {
             } else {
                 a = b;
                 b = rest;
+                // if the rest is constant the gcd is constant
+                // return here an empty polynomial
                 if (b.getSize() == 1) {
                     return new Polynomial();
                 }
+                // if b is empty a is the gcd
                 if (b.getSize() == 0) {
                     return a;
                 }
@@ -259,6 +268,7 @@ public class ManPolys {
      * @return Polynomial p+q
      */
     public static Polynomial addPolynomials(Polynomial p, Polynomial q) {
+        // true if p is bigger than q
         boolean pisbigger = false;
 
         if (q.getSize() == 0) {
@@ -268,6 +278,7 @@ public class ManPolys {
             return q;
         }
 
+        // decide minimum and maximum degree
         int mindeg = 0;
         int maxdeg = 0;
         if (p.getDegree() > q.getDegree()) {
@@ -279,8 +290,10 @@ public class ManPolys {
             maxdeg = q.getDegree();
             pisbigger = false;
         }
+        // result should be not bigger than the size of
+        // the bigger polynomial
         Rational [] list1 = new Rational[maxdeg + 1];
-        
+
         for (int i = 0; i <= mindeg; i++) {
             list1[i] = p.coefficients[i].add(q.coefficients[i]);
         }
