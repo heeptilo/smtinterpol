@@ -29,7 +29,7 @@ public class PolynomialTests {
 
     // help functions for tests
     
-    public Polynomial createTestPoly(int... a) {
+    private Polynomial createTestPoly(int... a) {
         Rational [] coeff1 = new Rational[a.length];
 
         for (int i = 0; i < a.length; i++) {
@@ -40,12 +40,12 @@ public class PolynomialTests {
         return res;
     }
 
-    public Polynomial createTestPolyRat(Rational... a) {
+    private Polynomial createTestPolyRat(Rational... a) {
         Polynomial res = new Polynomial(a);
         return res;
     }
 
-    public BivariatePolynomial createTestBiPoly(Polynomial... a) {
+    private BivariatePolynomial createTestBiPoly(Polynomial... a) {
         Rational [][] coeff1 = new Rational[a.length][];
 
         for (int i = 0; i < a.length; i++) {
@@ -56,18 +56,10 @@ public class PolynomialTests {
         return res;
     }
 
-    public AlgebraicNumbers createTestAlgebraicNumber(int intervalbegin, int intervalend, int... a) {
+    private AlgebraicNumbers createTestAlgebraicNumber(int intervalbegin, int intervalend, int... a) {
         Polynomial test = createTestPoly(a);
         Rational intervaldown = Rational.valueOf(intervalbegin, 1);
         Rational intervalup = Rational.valueOf(intervalend, 1);
-        AlgebraicNumbers alg = new AlgebraicNumbers(test, intervaldown, intervalup);
-        return alg;
-    }
-
-    public AlgebraicNumbers createTestAlgebraicNumberRat(int interbeg, int interend, Rational... a) {
-        Polynomial test = createTestPolyRat(a);
-        Rational intervaldown = Rational.valueOf(interbeg, 1);
-        Rational intervalup = Rational.valueOf(interend, 1);
         AlgebraicNumbers alg = new AlgebraicNumbers(test, intervaldown, intervalup);
         return alg;
     }
@@ -254,36 +246,7 @@ public class PolynomialTests {
         a = BivariatePolynomial.subxy(p);
         System.out.println(Arrays.deepToString(a.coefficients));
     }
-    /*
-    @Test
-    public void testLagrangePolyomial1() {
-
-        // that means f(-1) = 1 and f(1) = -1
-        Polynomial p = createTestPoly(1,-1,2);
-        Polynomial q = createTestPoly(3,1,7);
-        Polynomial r = createTestPoly(1,1,1);
-
-
-        AlgebraicNumbers a1 = createTestAlgebraicNumber(-2, 2, 0, -1, 1);
-        a1.lagrangePolynomial(p.coefficients, q.coefficients);
-        assert(Arrays.equals(r.coefficients, a1.lagrangePolynomial(p.coefficients, q.coefficients).coefficients));
-    }
-
     
-    @Test
-    public void testLagrangePolyomial() {
-
-        // that means f(-1) = 1 and f(1) = -1
-        Polynomial p = createTestPoly(0,-1,1);
-        Polynomial q = createTestPoly(1,0,2);
-        Polynomial r = createTestPoly(1,1,0);
-
-
-        AlgebraicNumbers a1 = createTestAlgebraicNumber(-2, 2, 0, -1, 1);
-        a1.lagrangePolynomial(p.coefficients, q.coefficients);
-        assert(Arrays.equals(r.coefficients, a1.lagrangePolynomial(p.coefficients, q.coefficients).coefficients));
-    }
-    */
     @Test
     public void testfactorizePolynomials() {
         AlgebraicNumbers a1 = createTestAlgebraicNumber(-2, 2, 2,1,1,0,1,1);
@@ -310,34 +273,7 @@ public class PolynomialTests {
         Polynomial [] fact = a.factorizePolynomial();
         System.out.println(Arrays.toString(fact[0].coefficients));
     }
-    
-    /*
-    @Test
-    public void testAdditionRationalsf() {
-        //1/256x**4-1/32x**3-21/32x**2+23/8x**1+17/16 [-7:-13) (-1)
-        AlgebraicNumbers a = createTestAlgebraicNumberRat(1, 2,
-                            Rational.valueOf(16, 3),
-                            Rational.ZERO,
-                            Rational.valueOf(-140, 3),
-                            Rational.ZERO,
-                            Rational.valueOf(35, 3),
-                            Rational.ZERO,
-                            Rational.valueOf(1,1));
-        AlgebraicNumbers b = createTestAlgebraicNumberRat(-2, -1,
-                                    Rational.valueOf(17, 16),
-                                                        Rational.valueOf(23, 8), 
-                                                        Rational.valueOf(-21, 32),
-                                                        Rational.valueOf(-1, 32),
-                                                        Rational.valueOf(1,1));
-        a = a.makeUnique();
-        b = b.makeUnique();
-        System.out.println(a.toString());
-        System.out.println(b.toString());
-        AlgebraicNumbers c = AlgebraicNumbers.add(a, b);
-        System.out.println(c.toString());
-        //System.out.println(d.toString());
-    }
-     */
+
 
     @Test
     public void testMulPoly() {
@@ -352,8 +288,10 @@ public class PolynomialTests {
         System.out.println(q.coefficients);
     }
 
+    // Test Algebraic Division
+
     @Test
-    public void testDivideAlgebraic() {
+    public void testAlgebraicDivision1() {
         AlgebraicNumbers a = createTestAlgebraicNumber(1,2 ,-3, 0, 1);
         AlgebraicNumbers b = createTestAlgebraicNumber(1, 3, -4, 0, 1);
 
@@ -364,8 +302,40 @@ public class PolynomialTests {
         Rational.valueOf(1, 1));
         Assert.assertEquals(c.polynomial, test);
         Assert.assertTrue(c.rootsInInterval() == 1);
+    }
 
+    @Test
+    public void testAlgebraicDivision2() {
+        AlgebraicNumbers a = createTestAlgebraicNumber(2,3 ,-3, 1);
+        AlgebraicNumbers b = createTestAlgebraicNumber(1, 7, -6, 1);
 
+        AlgebraicNumbers c = AlgebraicNumbers.divide(a, b);
+
+        AlgebraicNumbers test = createTestAlgebraicNumber(0, 1, -1, 2);
+        Assert.assertEquals(c, test);
+        Assert.assertTrue(c.rootsInInterval() == 1);
+    }
+
+    @Test
+    public void testAlgebraicDivision3() {
+        AlgebraicNumbers a = createTestAlgebraicNumber(2,3 ,-3, 1);
+        AlgebraicNumbers b = createTestAlgebraicNumber(0, 1, -1, 2);
+        AlgebraicNumbers c = createTestAlgebraicNumber(4, 6, 50,-20,-3,1);
+        AlgebraicNumbers d = createTestAlgebraicNumber(10, 20, -144, 0, 1);
+
+        AlgebraicNumbers z = AlgebraicNumbers.ZERO;
+
+        AlgebraicNumbers aOverb = createTestAlgebraicNumber(5, 6, -6, 1);
+        AlgebraicNumbers aOverd = createTestAlgebraicNumber(0, 1, -1, 4);
+        AlgebraicNumbers dOverb = createTestAlgebraicNumber(23, 24, -24, 1);
+        AlgebraicNumbers dOvera = createTestAlgebraicNumber(3, 4, -4, 1);
+        AlgebraicNumbers zeroOverc = AlgebraicNumbers.ZERO;
+
+        Assert.assertEquals(aOverb, AlgebraicNumbers.divide(a, b));
+        Assert.assertEquals(aOverd, AlgebraicNumbers.divide(a, d));
+        Assert.assertEquals(dOverb, AlgebraicNumbers.divide(d, b));
+        Assert.assertEquals(dOvera, AlgebraicNumbers.divide(d, a));
+        Assert.assertEquals(zeroOverc, AlgebraicNumbers.divide(z, c));
     }
 
     // Test algebraic addition
@@ -378,7 +348,23 @@ public class PolynomialTests {
         AlgebraicNumbers c = AlgebraicNumbers.add(a, b);
         System.out.println(c);
         Assert.assertEquals(Rational.ZERO, c.polynomial.evaluatePoly(Rational.valueOf(3, 4)));
+
+        // 0 + 0 = 0
+        a = AlgebraicNumbers.ZERO;
+        b = AlgebraicNumbers.ZERO;
+        Assert.assertEquals(a, AlgebraicNumbers.add(a,b));
+
+        // a + 0 = 0
+        a = createTestAlgebraicNumber(0, 7, -6, 1);
+        b = AlgebraicNumbers.ZERO;
+        Assert.assertEquals(a, AlgebraicNumbers.add(a, b));
+
+        // 0 + b = 0
+        b = createTestAlgebraicNumber(5, 8, -36, 0, 1);
+        a = AlgebraicNumbers.ZERO;
+        Assert.assertEquals(b, AlgebraicNumbers.add(a, b));
     }
+
     @Test
     // 1/2 + 1/2 = 1
     public void testAlgebraicAddition2() {
@@ -416,7 +402,6 @@ public class PolynomialTests {
         //Assert.assertEquals(Rational.ZERO, c.polynomial.coefficients);
         //Assert.assertTrue(c.isZero());
         //System.out.println(AlgebraicNumbers.minus(a,b).toString());
-        AlgebraicNumbers solution = createTestAlgebraicNumber(6, 7, 49,-42,1);
         System.out.println(c);
         c = AlgebraicNumbers.multiply(c, c);
         System.out.println(c);
@@ -505,6 +490,22 @@ public class PolynomialTests {
     }
 
     @Test
+    public void testAlgebraicMultiplication4() {
+        // calculate (3rd-root(7))**3 = 7
+        AlgebraicNumbers a = createTestAlgebraicNumber(1, 2, -7, 0, 0, 1);
+        AlgebraicNumbers b = AlgebraicNumbers.multiply(a,a);
+        AlgebraicNumbers c = AlgebraicNumbers.multiply(a,b);
+
+        Assert.assertEquals(Rational.ZERO, c.polynomial.evaluatePoly(Rational.valueOf(7, 1)));
+
+        Polynomial test = createTestPoly(-7, 1);
+        AlgebraicNumbers expect = new AlgebraicNumbers(test, 1);
+        Assert.assertEquals(expect, c);
+        Assert.assertEquals(c.polynomial, test);
+        Assert.assertTrue(c.rootsInInterval() == 1);
+    }
+
+    @Test
     public void testAlgebraicMultiplication3() {
         // calculate sqrt(10) * sqrt(10) = 10
         AlgebraicNumbers a = createTestAlgebraicNumber(3, 4, -10, 0, 1);
@@ -518,9 +519,39 @@ public class PolynomialTests {
         Assert.assertEquals(c.polynomial, test);
     }
 
+    @Test
+    public void testAlgebraicMultiplication5() {
+
+        // Testnumbers
+        AlgebraicNumbers a = createTestAlgebraicNumber(3, 4, -10, 0, 1);
+        AlgebraicNumbers b = createTestAlgebraicNumber(2, 3, -8, 0, 1);
+        AlgebraicNumbers c = createTestAlgebraicNumber(1, 2, -7, 0, 0, 1);
+        AlgebraicNumbers d = createTestAlgebraicNumber(2, 3, -6, 0, 1);
+        AlgebraicNumbers e = createTestAlgebraicNumber(3, 4, -4, 1);
+
+        AlgebraicNumbers z = AlgebraicNumbers.ZERO;
+
+        // expected values
+        AlgebraicNumbers aTimesb = createTestAlgebraicNumber(8, 9, -80, 0, 1);
+        AlgebraicNumbers aTimesd = createTestAlgebraicNumber(7, 8, -60, 0, 1);
+        AlgebraicNumbers aTimese = createTestAlgebraicNumber(12, 13, -160, 0, 1);
+        AlgebraicNumbers aTimesz = AlgebraicNumbers.ZERO;
+        AlgebraicNumbers cTimesc = createTestAlgebraicNumber(3, 4, -49, 0, 0, 1);
+        AlgebraicNumbers aSquared = createTestAlgebraicNumber(9, 10, -10, 1);
+
+        // test
+        Assert.assertEquals(aTimesb, AlgebraicNumbers.multiply(a, b));
+        Assert.assertEquals(aTimesd, AlgebraicNumbers.multiply(a, d));
+        Assert.assertEquals(aTimese, AlgebraicNumbers.multiply(a, e));
+        Assert.assertEquals(aTimesz, AlgebraicNumbers.multiply(a, z));
+        Assert.assertEquals(cTimesc, AlgebraicNumbers.multiply(c, c));
+        Assert.assertEquals(aSquared, AlgebraicNumbers.multiply(a, a));
+    }
+
+    // Test Subtraction Algebraic
 
     @Test
-    public void testSubtractionAlgebraic() {
+    public void testAlgebraicStubtraction() {
         // sqrt(10) - sqrt(8) = sqrt(10)-2sqrt(2)
         AlgebraicNumbers a = createTestAlgebraicNumber(3, 4, -10, 0, 1);
         AlgebraicNumbers b = createTestAlgebraicNumber(2, 3, -8, 0, 1);
@@ -532,7 +563,8 @@ public class PolynomialTests {
     }
 
     @Test
-    public void testSubtractionAlgebraic2() {
+    public void testAlgebraicStubtraction2() {
+        // 7 - 5 = 2
         AlgebraicNumbers a = createTestAlgebraicNumber(6, 7, -7, 1);
         AlgebraicNumbers b = createTestAlgebraicNumber(4, 5, -5, 1);
         AlgebraicNumbers c = AlgebraicNumbers.minus(a, b);
@@ -545,18 +577,94 @@ public class PolynomialTests {
     }
 
     @Test
-    public void testSubtractionAlgebraic3() {
+    public void testAlgebraicStubtraction3() {
         AlgebraicNumbers a = createTestAlgebraicNumber(3, 4, -16, 0, 1);
         AlgebraicNumbers b = createTestAlgebraicNumber(1, 2, -4, 0, 1);
         AlgebraicNumbers c = AlgebraicNumbers.minus(a, b);
-        System.out.println(c);
-        System.out.println(Arrays.toString(b.polynomial.coefficients));
         
         Polynomial test = createTestPoly(-2, 1);
         AlgebraicNumbers expect = new AlgebraicNumbers(test, 1);
         Assert.assertEquals(expect, c);
         Assert.assertEquals(c.polynomial, test);
         Assert.assertTrue(c.rootsInInterval() == 1);
+
+        a = createTestAlgebraicNumber(4, 5, -17, 0, 1);
+        b = createTestAlgebraicNumber(1, 2, -4, 0, 1);
+        c = AlgebraicNumbers.minus(a, b);
+        
+        test = createTestPoly(-13, 4, 1);
+        expect = new AlgebraicNumbers(test, 2);
+        Assert.assertEquals(expect, c);
+        Assert.assertEquals(c.polynomial, test);
+        Assert.assertTrue(c.rootsInInterval() == 1);
+    }
+
+    @Test
+    public void testAlgebraicStubtraction4() {
+        AlgebraicNumbers a = createTestAlgebraicNumber(12, 13, 19, -14, 1);
+        AlgebraicNumbers b = createTestAlgebraicNumber(0, 1, -3, 4, 1);
+        AlgebraicNumbers c = AlgebraicNumbers.minus(a, b);
+        
+        Polynomial test = createTestPoly(1096, -1584, 412, -36, 1);
+        AlgebraicNumbers expect = new AlgebraicNumbers(test, 3);
+        Assert.assertEquals(expect, c);
+        Assert.assertEquals(c.polynomial, test);
+        Assert.assertTrue(c.rootsInInterval() == 1);
+    }
+
+    @Test
+    public void testAlgebraicStubtraction5() {
+
+        // Testnumbers
+        AlgebraicNumbers b = createTestAlgebraicNumber(2, 3, -8, 0, 1);
+        AlgebraicNumbers c = createTestAlgebraicNumber(1, 2, -7, 0, 0, 1);
+        AlgebraicNumbers d = createTestAlgebraicNumber(2, 3, -6, 0, 1);
+        AlgebraicNumbers e = createTestAlgebraicNumber(3, 4, -4, 1);
+
+        AlgebraicNumbers z = AlgebraicNumbers.ZERO;
+
+        // expected values
+        AlgebraicNumbers minusb = b.negate();
+        AlgebraicNumbers eMinusd = createTestAlgebraicNumber(1, 2, 10, -8, 1);
+        AlgebraicNumbers cMinusz = c;
+        AlgebraicNumbers bMinusd = createTestAlgebraicNumber(0, 1, 4, 0, -28, 0, 1);
+        AlgebraicNumbers dMinusc = createTestAlgebraicNumber(0, 2, -167, 252, 108, 14, -18, 0, 1);
+
+        // test
+        Assert.assertEquals(minusb, AlgebraicNumbers.minus(z, b));
+        Assert.assertEquals(eMinusd, AlgebraicNumbers.minus(e, d));
+        Assert.assertEquals(cMinusz, AlgebraicNumbers.minus(c, z));
+        Assert.assertEquals(bMinusd, AlgebraicNumbers.minus(b, d));
+        Assert.assertEquals(dMinusc, AlgebraicNumbers.minus(d, c));
+    }
+
+    @Test
+    public void testAlgebraicStubtractionHard() {
+
+        AlgebraicNumbers a = createTestAlgebraicNumber(1, 2, -7, 0, 0, 1);
+        AlgebraicNumbers b = createTestAlgebraicNumber(2, 3, -6, 0, 1);
+
+        // expected value
+        AlgebraicNumbers bMinusa = createTestAlgebraicNumber(0, 2, -167, 252, 108, 14, -18, 0, 1);
+
+        // test
+        Assert.assertEquals(bMinusa, AlgebraicNumbers.minus(b, a));
+    }
+
+
+    @Test
+    public void testSturmSequence2() {
+        AlgebraicNumbers a = createTestAlgebraicNumber(-1, 1, 0,1);
+        Rational [] b = new Rational[3];
+        b[0] = Rational.valueOf(1, 1);
+        b[1] = Rational.valueOf(1, 1);
+        b[2] = Rational.ZERO;
+        System.out.println(a.SignChangeCounter(b));
+
+        b[0] = Rational.ZERO;
+        b[1] = Rational.valueOf(1, 1);
+        b[2] = Rational.ZERO;
+        System.out.println(a.SignChangeCounter(b));
     }
 
     @Test
@@ -639,6 +747,7 @@ public class PolynomialTests {
         Assert.assertTrue(!a.SturmsequenceInf()[2].isNegative());
         Assert.assertTrue(a.SturmsequenceInf()[3].isNegative());
         Assert.assertTrue(a.SturmsequenceInf()[4].isNegative());
+        System.out.println(a);
         Assert.assertEquals(1, a.rootsInInterval());
     }
 
@@ -665,6 +774,7 @@ public class PolynomialTests {
         Assert.assertTrue(a.numberOfRoot() == 1);
 
         AlgebraicNumbers b = new AlgebraicNumbers(p, 2);
+        System.out.println(b);
         Assert.assertTrue(b.numberOfRoot() == 2);
 
         p = createTestPoly(0,1,2,1);

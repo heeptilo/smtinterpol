@@ -18,9 +18,7 @@
  */
 
 package de.uni_freiburg.informatik.ultimate.logic;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 //import java.util.*;
@@ -54,9 +52,8 @@ public class AlgebraicNumbers {
             p, Rational.valueOf(1, 1), Rational.valueOf(2, 1));
         a = a.squareFree();
         if (a.rootsOfPoly() == 0) {
-            //TODO: Error
+            //
         } else {
-            System.out.println(numberOfRoot);
             a.findRoot(numberOfRoot);
             if (interval[0] == Rational.ZERO && interval[1] == Rational.ZERO) {
                 a = AlgebraicNumbers.ZERO;
@@ -90,21 +87,28 @@ public class AlgebraicNumbers {
         while (numRoots < maxRoots) {
             end *= 2;
             numRoots = rootsInterval(0, end);
-            System.out.println(numRoots);
         }
-        Rational up = Rational.ZERO;
-        Rational down = Rational.valueOf(end, 1);
+        Rational up;
+        Rational down;
+        if (end <= 0) {
+            up = Rational.ZERO;
+            down = Rational.valueOf(end, 1);
+        } else {
+            down = Rational.ZERO;
+            up = Rational.valueOf(end, 1);
+        }
         Integer numRootsUp;
         Integer numRootsDown;
         while (numRoots > 1) {
             // mid = (up + down) / 2
             Rational mid = up.add(down).div(Rational.valueOf(2, 1));
             numRootsUp = rootsInterval(mid, up);
-            numRootsDown = rootsInterval(down, mid);
-            if (numRootsDown >= rootID) {
-                up = mid;
-            } else {
+            //numRootsDown = rootsInterval(down, mid);
+            numRootsDown = SignChangeCounter(SturmsequenceMinusInf()) - SignChangeCounter(evaluateSturmsequence(mid));
+            if (numRootsDown < rootID) {
                 down = mid;
+            } else {
+                up = mid;
             }
             // update numRoots
             numRoots = rootsInterval(down, up);
@@ -208,7 +212,6 @@ public class AlgebraicNumbers {
     }
 
     public AlgebraicNumbers negate() {
-        System.out.println(this);
         if (isZero()) {
             return this;
         }
@@ -218,16 +221,14 @@ public class AlgebraicNumbers {
         idown = interval[1].negate();
         iup = interval[0].negate();
         AlgebraicNumbers neg = new AlgebraicNumbers(polynomial.negate(), idown, iup);
-        System.out.println(neg);
-        System.out.println(neg.numberOfRoot());
-        System.out.println(neg.rootsInInterval());
         // number of roots in interval can be zero if upper bound was root
         // because lower bound is not included in contrast to upper bound
         Rational multi = Rational.valueOf(1, 1);
+        Rational idownew;
         while (neg.rootsInInterval() != 1) {
-            idown = idown.sub(multi);
-            multi.mul(Rational.valueOf(1, 2));
-            neg = new AlgebraicNumbers(polynomial.negate(), idown, iup);
+            idownew = idown.sub(multi);
+            multi = multi.mul(Rational.valueOf(1, 2));
+            neg = new AlgebraicNumbers(polynomial.negate(), idownew, iup);
         }
         return neg;
     }
@@ -359,16 +360,29 @@ public class AlgebraicNumbers {
         return SignChangeCounter(sturmSequencedown) - SignChangeCounter(sturmSequenceup);
     }
 
-    private int SignChangeCounter(Rational [] sturmSequence) {
+    public int SignChangeCounter(Rational [] sturmSequence) {
         int counter = 0;
         boolean negative = false;
         if (sturmSequence.length == 0) {
             return 0;
         }
-        if (sturmSequence[0].isNegative()) {
+        // special case if sturmsequence begins with
+        // unbounded number of zeros
+        int c = 0;
+        while (sturmSequence[c] == Rational.ZERO) {
+            c++;
+            if (c == sturmSequence.length) {
+                return 0;
+            }
+        }
+        if (sturmSequence[c].isNegative()) {
             negative = true;
         }
-        for (int i = 1; i < sturmSequence.length; i++) {
+        for (int i = c + 1; i < sturmSequence.length; i++) {
+            // ignore zeros
+            if (sturmSequence[i] == Rational.ZERO) {
+                continue;
+            }
             if (sturmSequence[i].isNegative()  & !negative) {
                 counter += 1;
                 negative = true;
@@ -378,7 +392,11 @@ public class AlgebraicNumbers {
                 negative = false;
             }
         }
-        return counter;
+        if (counter == -1) {
+            return 0;
+        } else {
+            return counter;
+        }
     }
 
     /**
@@ -548,64 +566,6 @@ public class AlgebraicNumbers {
      * @param m
      * @return Generates a polynomial that is a factor of the algebraic number
      */
-    /*
-    public Polynomial [] generateFactorOLd(List<List<Integer>> possibleValues, Integer [] nodes, int m) {
-        // initialize counter
-        Integer [] counter = new Integer[possibleValues.size()];
-        for (int i = 0; i < possibleValues.size(); i++) {
-            counter[i] = 0;
-        }
-        Integer [] maxvalues = new Integer[possibleValues.size()];
-        for (int i = 0; i < possibleValues.size(); i++) {
-            maxvalues[i] = possibleValues.get(i).size()-1;
-        }
-        // initialize polynomial
-        Polynomial testPolynomial = new Polynomial();
-        Rational [] nodesRat = listToRational(nodes);
-        // check polynomial of zeros as index for values
-        Integer [] testValues = new Integer[possibleValues.size()];
-        Polynomial [] division = new Polynomial[2];
-        Polynomial [] result = new Polynomial[2];
-        // create testValues
-        while (true) {
-            testValues = new Integer[possibleValues.size()];
-            for (int k = 0; k < possibleValues.size(); k++) {
-                testValues[k] = possibleValues.get(k).get(counter[k]);
-            }
-
-            testPolynomial = lagrangePolynomial(nodesRat, listToRational(testValues), m);
-            //System.out.println(Arrays.toString(testPolynomial.coefficients));
-            //Rational [] test = new Rational[3];
-            //test[0] = Rational.valueOf(49,1);
-            //test[1] = Rational.valueOf(42,1);
-            //test[2] = Rational.valueOf(1,1);
-            //testPolynomial = new Polynomial(test);
-            division = ManPolys.longdivision(polynomial, testPolynomial);
-            if (division[1].getSize() == 0) {
-                testPolynomial = testPolynomial.removeZeros();
-                if (testPolynomial.getDegree() == m) {
-                    result[0] = testPolynomial;
-                    result[1] = division[0];
-                    return result;
-                }
-            }
-            counter = CounterIncrease(counter, maxvalues);
-            counter = CounterIncrease(counter, maxvalues);
-            if (counter[0] == -1) {
-                result[0] = polynomial;
-                result[1] = new Polynomial();
-                return result;
-            }
-        }
-    }*/
-
-    /**
-     * 
-     * @param possibleValues
-     * @param nodes
-     * @param m
-     * @return Generates a polynomial that is a factor of the algebraic number
-     */
     private Polynomial [] generateFactor(List<List<Integer>> possibleValues, Integer [] nodes, int m) {
         // initialize a counter
         // each cell counts to its own maxvalue in maxvalues
@@ -632,22 +592,6 @@ public class AlgebraicNumbers {
             }
 
             testPolynomial = lagrangePolynomial(nodesRat, listToRational(testValues), m);
-            if (m == 3) {
-                //System.out.println(Arrays.toString(testPolynomial.coefficients));
-                if (testValues[0] == 49 && testValues[1] == 8 && testValues[2] == 92) {
-                    System.out.println("ok");
-                    System.out.println(Arrays.toString(testPolynomial.coefficients));
-                }
-            }
-            //System.out.println(Arrays.toString(polynomial.coefficients));
-            //System.out.println("durch");
-            //System.out.println(Arrays.toString(testPolynomial.coefficients));
-            //System.out.println("ist");
-            //Rational [] test = new Rational[3];
-            //test[0] = Rational.valueOf(49,1);
-            //test[1] = Rational.valueOf(42,1);
-            //test[2] = Rational.valueOf(1,1);
-            //testPolynomial = new Polynomial(test);
             division = ManPolys.longdivision(polynomial, testPolynomial);
             // if poly is divisible by factor and factor is not constant
             // a factor is found
@@ -735,8 +679,6 @@ public class AlgebraicNumbers {
     public static AlgebraicNumbers add(AlgebraicNumbers a, AlgebraicNumbers b) {
         a = a.minimize();
         b = b.minimize();
-        System.out.println(a);
-        System.out.println(b);
 
         if (a.isZero()) {
             return b;
@@ -777,7 +719,6 @@ public class AlgebraicNumbers {
         }
         // interval calculation
         Rational [] intervalRes = addIntervals(a.interval, b.interval);
-        AlgebraicNumbers r = new AlgebraicNumbers(resPoly, intervalRes[0], intervalRes[1]);
         while (resPoly.numberOfRootsinInterval(intervalRes) > 1) {
             a = a.improveInterval();
             b = b.improveInterval();
@@ -797,7 +738,7 @@ public class AlgebraicNumbers {
             return AlgebraicNumbers.ZERO;
         }
         if (b.isZero()) {
-            //Assert error
+            return AlgebraicNumbers.ZERO;
         }
 
         BivariatePolynomial f = b.polynomial.toBivariate();
@@ -1042,9 +983,7 @@ public class AlgebraicNumbers {
             // make self unique
             a2 = a2.makeUnique();
             if (a2.polynomial.equals(a1.polynomial)) {
-                System.out.println("true");
                 if (a2.numberOfRoot() == a1.numberOfRoot()) {
-                    System.out.println("true");
                     return true;
                 }
             }

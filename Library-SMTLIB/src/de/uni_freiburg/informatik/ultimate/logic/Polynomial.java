@@ -218,20 +218,14 @@ public class Polynomial {
         AlgebraicNumbers sum = new AlgebraicNumbers(new Polynomial(con), coefficients[0].sub(Rational.valueOf(1, 1)),
         coefficients[0].add(Rational.valueOf(1, 1)));
         AlgebraicNumbers pote = new AlgebraicNumbers(a.polynomial, a.interval[0], a.interval[1]);
+
         for (int i = 1; i <= getDegree(); i++) {
-            //System.out.println(sum.toString());
-            //System.out.println(AlgebraicNumbers.mulConst(pote, coefficients[i]).toString());
-            //System.out.println( AlgebraicNumbers.mulConst(pote, coefficients[i]).toString());
             AlgebraicNumbers constmul = AlgebraicNumbers.mulConst(pote, coefficients[i]);
-            //System.out.println(constmul);
             constmul = constmul.removeZeroNodes();
-            //System.out.println("sum:");
-            //System.out.println(constmul);
-            //System.out.println("+");
             sum = sum.removeZeroNodes();
             sum = AlgebraicNumbers.add(sum, constmul);
             if (i != getDegree()) {
-                //pote = pote.minimize();
+                pote = pote.minimize();
                 pote = AlgebraicNumbers.multiply(pote, a);
             }
         }
