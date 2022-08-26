@@ -17,7 +17,8 @@
  * along with SMTInterpol.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.uni_freiburg.informatik.ultimate.logic;
+package de.uni_freiburg.informatik.ultimate.AlgebraicNumbersPackage;
+import de.uni_freiburg.informatik.ultimate.logic.Rational;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -536,7 +537,7 @@ public class AlgebraicNumbers {
                 return result;
             }
             //Assume val is integral (is integral because polynomial has int coefficients)
-            Integer intval = val.mNum;
+            Integer intval = val.numerator().intValue();
             //Assert.assertTrue(val.isIntegral());
             values.add(intval);
         }
